@@ -9,6 +9,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 class ApiControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = CustomGlobalException.class)
     public ResponseEntity<ErrorResponse> handleException(CustomGlobalException e) {
-        return ResponseEntity.status(e.getErrorCode().getStatusCode()).body(new ErrorResponse(e.getErrorCode().getCode(), e.getMessage()));
+        return ResponseEntity.status(e.getHttpStatus()).body(new ErrorResponse(e.getCode(), e.getMessage()));
     }
 }

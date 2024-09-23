@@ -26,7 +26,7 @@ public class PointController {
      */
     @GetMapping("{id}")
     public ResponseEntity<UserPoint> point(
-        @PathVariable(value = "id") long id
+        @PathVariable(name = "id") long id
     ) {
         return ok(pointService.search(id));
     }
@@ -36,7 +36,7 @@ public class PointController {
      */
     @GetMapping("{id}/histories")
     public ResponseEntity<List<PointHistory>> history(
-        @PathVariable long id
+        @PathVariable(name = "id") long id
     ) {
         return ok(pointService.findHistory(id));
     }
@@ -46,7 +46,7 @@ public class PointController {
      */
     @PatchMapping("{id}/charge")
     public ResponseEntity<UserPoint> charge(
-        @PathVariable long id,
+        @PathVariable(name = "id") long id,
         @RequestBody long amount
     ) {
         return ok(pointService.charge(id,amount));
@@ -57,7 +57,7 @@ public class PointController {
      */
     @PatchMapping("{id}/use")
     public ResponseEntity<UserPoint> use(
-        @PathVariable long id,
+        @PathVariable(name = "id") long id,
         @RequestBody long amount
     ) {
         return ok(pointService.use(id,amount));

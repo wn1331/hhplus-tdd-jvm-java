@@ -18,9 +18,9 @@ public class PointHistoryRepositoryImpl implements PointHistoryRepository{
     }
 
     @Override
-    public PointHistory insert(Long id, Long amount, TransactionType type,
-        Long updatemillis) {
-        return pointHistoryTable.insert(id,amount,type,updatemillis);
+    public PointHistory insert(Long id, Long amount, TransactionType type
+        ) {
+        return pointHistoryTable.insert(id,amount,type,System.currentTimeMillis());
     }
 }
 

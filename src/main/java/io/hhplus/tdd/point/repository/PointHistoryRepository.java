@@ -8,6 +8,6 @@ import java.util.List;
 public interface PointHistoryRepository {
     List<PointHistory> selectAllByUserId(Long id);
 
-    PointHistory insert(Long id, Long amount, TransactionType type, Long updatemillis);
+    PointHistory insert(Long id, Long amount, TransactionType type);
 
 }

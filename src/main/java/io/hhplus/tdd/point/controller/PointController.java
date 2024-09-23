@@ -26,7 +26,7 @@ public class PointController {
      */
     @GetMapping("{id}")
     public ResponseEntity<UserPoint> point(
-        @PathVariable long id
+        @PathVariable(value = "id") long id
     ) {
         return ok(pointService.search(id));
     }

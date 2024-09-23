@@ -1,5 +1,7 @@
 package io.hhplus.tdd.point.service;
 
+import io.hhplus.tdd.global.ErrorCode;
+import io.hhplus.tdd.global.CustomGlobalException;
 import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
@@ -14,11 +16,9 @@ public class PointService {
     private final PointHistoryRepository pointHistoryRepository;
     private final UserPointRepository userPointRepository;
 
-
     // 유저 포인트 조회
     public UserPoint search(long id){
-
-        return null;
+        return userPointRepository.selectById(id);
     }
 
     // 유저 포인트 충전

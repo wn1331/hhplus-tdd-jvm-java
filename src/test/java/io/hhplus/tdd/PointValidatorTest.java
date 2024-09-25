@@ -1,4 +1,4 @@
-package io.hhplus.tdd.unit;
+package io.hhplus.tdd;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 @DisplayName("[단위 테스트] PointValidator")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class PointValidatorUnitTest {
+class PointValidatorTest {
 
     private PointValidator pointValidator;
 

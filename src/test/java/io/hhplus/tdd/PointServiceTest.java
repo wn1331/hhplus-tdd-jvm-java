@@ -36,7 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("[단위 테스트] PointService")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class PointServiceUnitTest {
+class PointServiceTest {
 
     @Mock
     UserPointRepository userPointRepository;

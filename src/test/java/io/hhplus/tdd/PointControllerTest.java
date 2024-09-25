@@ -1,4 +1,4 @@
-package io.hhplus.tdd.unit;
+package io.hhplus.tdd;
 
 
 import static org.mockito.BDDMockito.given;
@@ -30,7 +30,7 @@ import org.springframework.test.web.servlet.ResultActions;
 @DisplayName("[단위 테스트] PointController")
 @WebMvcTest(PointController.class)
 @TestMethodOrder(value = MethodOrderer.OrderAnnotation.class)
-class PointControllerUnitTest {
+class PointControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

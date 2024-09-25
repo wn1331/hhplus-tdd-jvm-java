@@ -1,4 +1,4 @@
-package io.hhplus.tdd.unit;
+package io.hhplus.tdd;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

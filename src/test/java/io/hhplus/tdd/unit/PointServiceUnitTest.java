@@ -137,7 +137,8 @@ class PointServiceUnitTest {
         // given
         PointHistory pointHistory = new PointHistory(1L, USER_ID, 500L, TransactionType.CHARGE,
             System.currentTimeMillis());
-        UserPoint updatedUserPoint = new UserPoint(USER_ID,AMOUNT+500L,System.currentTimeMillis());
+        UserPoint updatedUserPoint = new UserPoint(USER_ID, AMOUNT + 500L,
+            System.currentTimeMillis());
         given(userPointRepository.selectById(USER_ID)).willReturn(userPoint);
         given(userPointRepository.insertOrUpdate(USER_ID, AMOUNT + 500L)).willReturn(
             updatedUserPoint); // 500 포인트 충전
@@ -202,10 +203,12 @@ class PointServiceUnitTest {
     void user_point_use_test() {
         // given
         long useAmount = 500L;
-        UserPoint updatedUserPoint = new UserPoint(USER_ID, AMOUNT-useAmount, System.currentTimeMillis());
+        UserPoint updatedUserPoint = new UserPoint(USER_ID, AMOUNT - useAmount,
+            System.currentTimeMillis());
 
         given(userPointRepository.selectById(USER_ID)).willReturn(userPoint);
-        given(userPointRepository.insertOrUpdate(USER_ID, AMOUNT-useAmount)).willReturn(updatedUserPoint); // 2000 -> 1000
+        given(userPointRepository.insertOrUpdate(USER_ID, AMOUNT - useAmount)).willReturn(
+            updatedUserPoint); // 2000 -> 1000
 
         // when
         UserPoint actualUserPoint = pointService.use(USER_ID, useAmount);

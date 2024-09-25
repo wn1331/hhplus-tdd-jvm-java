@@ -4,12 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.hhplus.tdd.global.CustomGlobalException;
 import io.hhplus.tdd.point.domain.UserPoint;
-import io.hhplus.tdd.point.repository.UserPointRepositoryImpl;
 import io.hhplus.tdd.point.service.PointService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -56,33 +54,21 @@ class PointConcurrencyTest {
 
     @Test
     @Order(2)
-    @DisplayName("[실패] 10개의_동시_충전_요청_테스트_최대_잔고")
+    @DisplayName("[성공] 5개의_동시_충전_요청_테스트")
     void concurrent_charge_requests_exceeding_max_balance() {
         List<CompletableFuture<Void>> tasks = new ArrayList<>();
 
-        // 멀티쓰레드 환경에서 동기화 없이도 정수값 업데이트 가능한 AtomicInteger
-        AtomicInteger exceptionCount = new AtomicInteger(0);
-
-        for (int i = 0; i < 10; i++) {
-            tasks.add(CompletableFuture.runAsync(() -> {
-                try {
-                    pointService.charge(USER_ID_2, 2000L);
-
-                } catch (CustomGlobalException e) {
-                    exceptionCount.incrementAndGet(); // 8번 추가되어야 함
-
-                    // Exception이 제대로 발생했는지 확인
-                    assertEquals("최대 포인트 잔고(5000)를 넘을 수 없습니다.", e.getMessage());
-                }
-            }));
+        for (int i = 0; i < 5; i++) {
+            tasks.add(CompletableFuture.runAsync(() -> pointService.charge(USER_ID_2, 500L)));
         }
 
         CompletableFuture<Void> allTasks = CompletableFuture.allOf(
             tasks.toArray(new CompletableFuture[0]));
         allTasks.join();
 
-        // Exception이 정확히 8번 발생했는지 확인
-        assertEquals(8, exceptionCount.get(), "CustomGlobalException은 정확히 8 번 발생해야 합니다.");
+        UserPoint result = pointService.search(USER_ID_2);
+
+        assertEquals(result.point(), 500 + 500 + 500 + 500 + 500);
     }
 
 

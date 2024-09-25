@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.hhplus.tdd.global.CustomGlobalException;
 import io.hhplus.tdd.point.domain.UserPoint;
+import io.hhplus.tdd.point.repository.UserPointRepositoryImpl;
 import io.hhplus.tdd.point.service.PointService;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,13 @@ class PointConcurrencyTest {
     @Autowired
     private PointService pointService;
 
-    private final long USER_ID = 1L;
+    /**
+     * 유저 아이디 분리한 이유 : 통합테스트를 동시 실행 시 포인트가 이어짐. (테스트 간의 상태 공유)
+     */
+    private final long USER_ID_1 = 1L;
+    private final long USER_ID_2 = 2L;
+    private final long USER_ID_3 = 3L;
+
 
     @Test
     @Order(1)
@@ -34,14 +41,14 @@ class PointConcurrencyTest {
 
         // 비동기 작업이 완료될 때까지 대기
         CompletableFuture.allOf(
-            CompletableFuture.runAsync(() -> pointService.charge(USER_ID, 2000)),
-            CompletableFuture.runAsync(() -> pointService.use(USER_ID, 1000)),
-            CompletableFuture.runAsync(() -> pointService.charge(USER_ID, 1500)),
-            CompletableFuture.runAsync(() -> pointService.use(USER_ID, 700)),
-            CompletableFuture.runAsync(() -> pointService.charge(USER_ID, 1000))
+            CompletableFuture.runAsync(() -> pointService.charge(USER_ID_1, 2000)),
+            CompletableFuture.runAsync(() -> pointService.use(USER_ID_1, 1000)),
+            CompletableFuture.runAsync(() -> pointService.charge(USER_ID_1, 1500)),
+            CompletableFuture.runAsync(() -> pointService.use(USER_ID_1, 700)),
+            CompletableFuture.runAsync(() -> pointService.charge(USER_ID_1, 1000))
         ).join();
 
-        UserPoint result = pointService.search(USER_ID);
+        UserPoint result = pointService.search(USER_ID_1);
 
         assertEquals(result.point(), 2000 - 1000 + 1500 - 700 + 1000);
 
@@ -59,7 +66,7 @@ class PointConcurrencyTest {
         for (int i = 0; i < 10; i++) {
             tasks.add(CompletableFuture.runAsync(() -> {
                 try {
-                    pointService.charge(USER_ID, 2000L);
+                    pointService.charge(USER_ID_2, 2000L);
 
                 } catch (CustomGlobalException e) {
                     exceptionCount.incrementAndGet(); // 8번 추가되어야 함
@@ -85,20 +92,20 @@ class PointConcurrencyTest {
     void concurrent_use_requests_insufficient_balance() {
         // 비동기 작업이 완료될 때까지 대기
         CompletableFuture.allOf(
-            CompletableFuture.runAsync(() -> pointService.charge(USER_ID, 5000)),
-            CompletableFuture.runAsync(() -> pointService.use(USER_ID, 1500)),
-            CompletableFuture.runAsync(() -> pointService.use(USER_ID, 1500)),
-            CompletableFuture.runAsync(() -> pointService.use(USER_ID, 1500)),
+            CompletableFuture.runAsync(() -> pointService.charge(USER_ID_3, 5000)),
+            CompletableFuture.runAsync(() -> pointService.use(USER_ID_3, 1500)),
+            CompletableFuture.runAsync(() -> pointService.use(USER_ID_3, 1500)),
+            CompletableFuture.runAsync(() -> pointService.use(USER_ID_3, 1500)),
             CompletableFuture.runAsync(() -> { // 여기서 잔고부족
                 try {
-                    pointService.use(USER_ID, 1500);
+                    pointService.use(USER_ID_3, 1500);
                 } catch (CustomGlobalException e) {
                     assertEquals("포인트가 부족합니다.", e.getMessage());
                 }
             })
         ).join();
 
-        UserPoint result = pointService.search(USER_ID);
+        UserPoint result = pointService.search(USER_ID_3);
 
         assertEquals(result.point(), 5000 - 1500 - 1500 - 1500);
 

@@ -3,7 +3,9 @@ package io.hhplus.tdd.unit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import io.hhplus.tdd.global.CustomGlobalException;
 import io.hhplus.tdd.global.ErrorCode;
@@ -13,8 +15,12 @@ import io.hhplus.tdd.point.domain.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.UserPointRepository;
 import io.hhplus.tdd.point.service.PointService;
+import io.hhplus.tdd.utils.LockManager;
+import io.hhplus.tdd.utils.PointValidator;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,16 +44,24 @@ class PointServiceUnitTest {
     @Mock
     PointHistoryRepository pointHistoryRepository;
 
+    @Mock
+    PointValidator pointValidator;
+
+    @Mock
+    LockManager lockManager;
+
     @InjectMocks
     PointService pointService;
 
     private final long USER_ID = 1L;
     private final long AMOUNT = 1000L;
     private UserPoint userPoint;
+    private final Lock userLock = new ReentrantLock();
 
     @BeforeEach
     void setUp() {
         userPoint = new UserPoint(USER_ID, AMOUNT, System.currentTimeMillis());
+
     }
 
     @Test
@@ -135,6 +149,7 @@ class PointServiceUnitTest {
     @DisplayName("[성공] 유저_포인트_충전")
     void user_point_charge_test() {
         // given
+        given(lockManager.getLock(USER_ID)).willReturn(userLock);
         PointHistory pointHistory = new PointHistory(1L, USER_ID, 500L, TransactionType.CHARGE,
             System.currentTimeMillis());
         UserPoint updatedUserPoint = new UserPoint(USER_ID, AMOUNT + 500L,
@@ -152,57 +167,17 @@ class PointServiceUnitTest {
         assertThat(actualUserPoint.id()).isEqualTo(USER_ID);
         assertThat(actualUserPoint.point()).isEqualTo(AMOUNT + 500L); // 500 포인트를 더한 1000 포인트인지 확인
 
-        // 질문...
-        // 충전 로직중 UserHistory에 추가가 되는 로직이 있는데 이것도 검증해야 하나요?
-        // 그렇다면 여기에서 UserHistory를 조회하는 경우 통합테스트가 되어버리는게 아닌지..
-
     }
+
 
     @Test
     @Order(6)
-    @DisplayName("[실패] 유저_포인트_충전_입력값_오류_음수값")
-    void user_point_charge_test_negative_amount() {
-        // given
-        long amount = -100L;
-        // when & then
-        assertThatThrownBy(() -> pointService.charge(USER_ID, amount))
-            .isInstanceOf(CustomGlobalException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NON_POSITIVE_INPUT);
-    }
-
-    @Test
-    @Order(7)
-    @DisplayName("[실패] 유저_포인트_충전_입력값_오류_0값")
-    void user_point_charge_test_zero_amount() {
-        // given
-        long amount = 0L;
-        // when & then
-        assertThatThrownBy(() -> pointService.charge(USER_ID, amount))
-            .isInstanceOf(CustomGlobalException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NON_POSITIVE_INPUT);
-    }
-
-    @Test
-    @Order(8)
-    @DisplayName("[실패] 유저_포인트_충전_최대_잔고_초과")
-    void user_point_charge_test_max_point() {
-        // given
-        long amount = 4500L; //기존 1000 + 4500 (최대잔고 5000)
-        given(userPointRepository.selectById(USER_ID)).willReturn(userPoint);
-
-        // when & then
-        assertThatThrownBy(() -> pointService.charge(USER_ID, amount))
-            .isInstanceOf(CustomGlobalException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MAX_POINT_ARRIVED);
-
-    }
-
-    @Test
-    @Order(9)
     @DisplayName("[성공] 유저_포인트_사용")
     void user_point_use_test() {
         // given
         long useAmount = 500L;
+        given(lockManager.getLock(USER_ID)).willReturn(userLock);
+
         UserPoint updatedUserPoint = new UserPoint(USER_ID, AMOUNT - useAmount,
             System.currentTimeMillis());
 
@@ -218,45 +193,8 @@ class PointServiceUnitTest {
         assertThat(actualUserPoint.point()).isEqualTo(updatedUserPoint.point());
     }
 
-    @Test
-    @Order(10)
-    @DisplayName("[실패] 유저_포인트_사용_입력값_오류_음수값")
-    void user_point_use_test_negative_amount() {
-        // given
-        long invalidAmount = -100L;
 
-        // when & then
-        assertThatThrownBy(() -> pointService.use(USER_ID, invalidAmount))
-            .isInstanceOf(CustomGlobalException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NON_POSITIVE_INPUT);
-    }
 
-    @Test
-    @Order(11)
-    @DisplayName("[실패] 유저_포인트_사용_입력값_오류_0값")
-    void user_point_use_test_zero_amount() {
-        // given
-        long invalidAmount = 0L;
-
-        // when & then
-        assertThatThrownBy(() -> pointService.use(USER_ID, invalidAmount))
-            .isInstanceOf(CustomGlobalException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NON_POSITIVE_INPUT);
-    }
-
-    @Test
-    @Order(12)
-    @DisplayName("[실패] 유저_포인트_사용_잔고_부족")
-    void user_point_use_test_not_enough_point() {
-        // given
-        long amount = 3000L;
-        given(userPointRepository.selectById(USER_ID)).willReturn(userPoint);
-
-        // when & then
-        assertThatThrownBy(() -> pointService.use(USER_ID, amount))
-            .isInstanceOf(CustomGlobalException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_ENOUGH_POINT);
-    }
 
 
 }

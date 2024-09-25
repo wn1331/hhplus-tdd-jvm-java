@@ -4,8 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
+import io.hhplus.tdd.global.CustomGlobalException;
+import io.hhplus.tdd.global.ErrorCode;
 import io.hhplus.tdd.point.TransactionType;
 import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.UserPoint;
@@ -162,9 +163,49 @@ class PointServiceTest {
 
     }
 
-
     @Test
     @Order(6)
+    @DisplayName("[실패] 유저_포인트_충전_입력값_오류_음수값")
+    void user_point_charge_test_negative_amount() {
+        // given
+        long amount = -100L;
+        // when & then
+        assertThatThrownBy(() -> pointService.charge(USER_ID, amount))
+            .isInstanceOf(CustomGlobalException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NON_POSITIVE_INPUT);
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("[실패] 유저_포인트_충전_입력값_오류_0값")
+    void user_point_charge_test_zero_amount() {
+        // given
+        long amount = 0L;
+        // when & then
+        assertThatThrownBy(() -> pointService.charge(USER_ID, amount))
+            .isInstanceOf(CustomGlobalException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NON_POSITIVE_INPUT);
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("[실패] 유저_포인트_충전_최대_잔고_초과")
+    void user_point_charge_test_max_point() {
+        // given
+        long amount = 4500L; //기존 1000 + 4500 (최대잔고 5000)
+        given(lockManager.getLock(USER_ID)).willReturn(userLock);
+
+        given(userPointRepository.selectById(USER_ID)).willReturn(userPoint);
+
+        // when & then
+        assertThatThrownBy(() -> pointService.charge(USER_ID, amount))
+            .isInstanceOf(CustomGlobalException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MAX_POINT_ARRIVED);
+
+    }
+
+    @Test
+    @Order(9)
     @DisplayName("[성공] 유저_포인트_사용")
     void user_point_use_test() {
         // given
@@ -187,6 +228,47 @@ class PointServiceTest {
     }
 
 
+    @Test
+    @Order(10)
+    @DisplayName("[실패] 유저_포인트_사용_입력값_오류_음수값")
+    void user_point_use_test_negative_amount() {
+        // given
+        long invalidAmount = -100L;
+
+        // when & then
+        assertThatThrownBy(() -> pointService.use(USER_ID, invalidAmount))
+            .isInstanceOf(CustomGlobalException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NON_POSITIVE_INPUT);
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("[실패] 유저_포인트_사용_입력값_오류_0값")
+    void user_point_use_test_zero_amount() {
+        // given
+        long invalidAmount = 0L;
+
+        // when & then
+        assertThatThrownBy(() -> pointService.use(USER_ID, invalidAmount))
+            .isInstanceOf(CustomGlobalException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NON_POSITIVE_INPUT);
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("[실패] 유저_포인트_사용_잔고_부족")
+    void user_point_use_test_not_enough_point() {
+        // given
+        long amount = 3000L;
+        given(lockManager.getLock(USER_ID)).willReturn(userLock);
+
+        given(userPointRepository.selectById(USER_ID)).willReturn(userPoint);
+
+        // when & then
+        assertThatThrownBy(() -> pointService.use(USER_ID, amount))
+            .isInstanceOf(CustomGlobalException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_ENOUGH_POINT);
+    }
 
 
 

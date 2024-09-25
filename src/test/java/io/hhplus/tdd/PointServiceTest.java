@@ -3,12 +3,9 @@ package io.hhplus.tdd;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-import io.hhplus.tdd.global.CustomGlobalException;
-import io.hhplus.tdd.global.ErrorCode;
 import io.hhplus.tdd.point.TransactionType;
 import io.hhplus.tdd.point.domain.PointHistory;
 import io.hhplus.tdd.point.domain.UserPoint;
@@ -16,7 +13,6 @@ import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.UserPointRepository;
 import io.hhplus.tdd.point.service.PointService;
 import io.hhplus.tdd.utils.LockManager;
-import io.hhplus.tdd.utils.PointValidator;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -43,9 +39,6 @@ class PointServiceTest {
 
     @Mock
     PointHistoryRepository pointHistoryRepository;
-
-    @Mock
-    PointValidator pointValidator;
 
     @Mock
     LockManager lockManager;

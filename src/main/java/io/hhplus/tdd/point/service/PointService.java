@@ -9,7 +9,6 @@ import io.hhplus.tdd.point.domain.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.UserPointRepository;
 import io.hhplus.tdd.utils.LockManager;
-import io.hhplus.tdd.utils.PointValidator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ public class PointService {
     private final PointHistoryRepository pointHistoryRepository;
     private final UserPointRepository userPointRepository;
     private final LockManager lockManager;
-    private final PointValidator pointValidator;
 
 
     // 유저 포인트 조회
@@ -38,7 +36,10 @@ public class PointService {
     // 유저 포인트 충전
     public UserPoint charge(long id, long amount) {
         // 포인트 정책, 입력값은 음수이거나 0일 수 없음
-        pointValidator.positiveCheck(amount);
+        if (amount <= 0) {
+            throw new CustomGlobalException(ErrorCode.NON_POSITIVE_INPUT);
+        }
+
         Lock userLock = lockManager.getLock(id);
         userLock.lock();
         try {
@@ -47,7 +48,9 @@ public class PointService {
             long resultPoint = userPoint.point() + amount;
 
             // 포인트 정책, 최대 포인트 잔고는 5000포인트를 넘을 수 없다.
-            pointValidator.maxPointCheck(resultPoint);
+            if(resultPoint > 5000L){
+                throw new CustomGlobalException(ErrorCode.MAX_POINT_ARRIVED);
+            }
 
             pointHistoryRepository.insert(id, amount, TransactionType.CHARGE);
             return userPointRepository.insertOrUpdate(id, resultPoint);
@@ -60,8 +63,9 @@ public class PointService {
     public UserPoint use(long id, long amount) {
 
         // 포인트 정책, 입력값은 음수이거나 0일 수 없음
-        pointValidator.positiveCheck(amount);
-
+        if (amount <= 0) {
+            throw new CustomGlobalException(ErrorCode.NON_POSITIVE_INPUT);
+        }
         Lock userLock = lockManager.getLock(id);
         userLock.lock();
         try {
@@ -69,7 +73,9 @@ public class PointService {
 
             // 포인트 정책, 포인트 부족
             long resultPoint = userPoint.point() - amount;
-            pointValidator.notEnoughPointCheck(resultPoint);
+            if (resultPoint < 0) {
+                throw new CustomGlobalException(ErrorCode.NOT_ENOUGH_POINT);
+            }
 
             pointHistoryRepository.insert(id, amount, TransactionType.USE);
             return userPointRepository.insertOrUpdate(id, resultPoint);

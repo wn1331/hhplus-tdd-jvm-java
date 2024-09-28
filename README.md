@@ -86,8 +86,8 @@ CompletableFuture의 join() 메서드는, 이러한 비동기 작업이 모두 �
 
 <h3>2. CountdownLatch를 이용하는 방법</h3>
 CountDownLatch는 자바의 concurrent패키지에 속한 클래스 중 하나로, 여러 쓰레드가 특정 작업을 완료할 때까지 대기하게 하는 동기화 도구이다. 이를 통해 특정 조건이 만족될 때까지 한 ㅅ크레드 또는 여럿 쓰레드가 기다리도록 설정할 수 있다.
-ExecutorService를 활용해서 쓰레드 풀을 선언하고, 카운트다운으로 하나씩 줄여주면서 테스트를 하면 된다.
-execute는 반환값 없을때, submit은 반환값 있을때 사용
+ExecutorService를 활용해서 쓰레드 풀을 선언하고, 카운트다운으로 하나씩 줄여주면서 테스트를 하면 된다.execute는 반환값 없을때, submit은 반환값 있을때 사용
+
 ```
     CountDownLatch latch = new CountDownLatch(taskCount);
     ExecutorService executorService = Executors.newFixedThreadPool(taskCount);

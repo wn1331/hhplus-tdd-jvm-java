@@ -62,7 +62,6 @@ public class LockManager {
 ```
 
 locks.computeIfAbsent(id, key -> new ReentrantLock()); 이 코드는 id가 맵에 존재하지 않으면, 새로운 ReentrantLock을 생성하고 맵에 저장한다. id가 이미 존재하면 해당 키에 매핑된 기존의 ReentrantLock을 반환한다.
-```
 
 <h2>동시성 테스트하는 여러 가지 방법</h2>
 <h3>1. CompletableFuture를 사용하는 방법</h3>

@@ -114,7 +114,6 @@ execute는 반환값 없을때, submit은 반환값 있을때 사용
 
     // ExecutorService 종료
     executorService.shutdown();
-    
 ```
 
 <h2>동시성 테스트 시 고려 사항</h2>
